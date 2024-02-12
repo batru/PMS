@@ -6,7 +6,7 @@ import Parking from "../models/parkingModel.js";
 const getSales = asyncHandler(async (req, res) => {
   //pagination
   const pageSize = 2;
-  const page = Number(req.query.pageNumber) || 2;
+  const page = Number(req.query.pageNumber) || 1;
 
   //number of parkings to skip
   const offset = (page - 1) * pageSize;
@@ -70,6 +70,7 @@ const createSale = asyncHandler(async (req, res) => {
   if (sale) {
     //update parking detais
     parking.isCheckOut = true;
+    parking.dateOut = sale.createdAt;
     parking.balance = Math.ceil(totalAmount - amountPaid);
     if (parking.balance === 0) {
       parking.status = "Paid";

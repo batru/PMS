@@ -7,7 +7,7 @@ import User from "../models/userModel.js";
 const getParkings = asyncHandler(async (req, res) => {
   //pagination
   const pageSize = 2;
-  const page = Number(req.query.pageNumber) || 2;
+  const page = Number(req.query.pageNumber) || 1;
 
   //number of parkings to skip
   const offset = (page - 1) * pageSize;

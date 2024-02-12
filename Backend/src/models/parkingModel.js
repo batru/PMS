@@ -57,6 +57,9 @@ const Parking = sequelize.define("parking", {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
   },
+  dateOut: {
+    type: Sequelize.DATE,
+  },
 });
 
 // Define the association
