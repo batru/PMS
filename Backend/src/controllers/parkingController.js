@@ -101,7 +101,8 @@ const updateParking = asyncHandler(async (req, res) => {
     parking.balance = req.body.balance || parking.balance;
     parking.slotName = req.body.slotName || parking.slotName;
     parking.phone = req.body.phone || parking.phone;
-
+    parking.rateName = req.body.rateName || parking.rateName;
+    parking.status = req.body.status || parking.status;
     const updatedParking = await parking.save();
     res.status(200).json(updatedParking);
   } else {
