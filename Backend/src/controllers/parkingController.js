@@ -6,7 +6,7 @@ import User from "../models/userModel.js";
 //get all parkings
 const getParkings = asyncHandler(async (req, res) => {
   //pagination
-  const pageSize = 2;
+  const pageSize = 1;
   const page = Number(req.query.pageNumber) || 1;
 
   //number of parkings to skip
@@ -54,7 +54,7 @@ const getParkingsById = asyncHandler(async (req, res) => {
 //crete Parking
 const createParking = asyncHandler(async (req, res) => {
   //get body data
-  const { vehicleOwner, vehicleNumber, rateName, balance, slotName } = req.body;
+  const { vehicleOwner, vehicleNumber, rateName, slotName, phone } = req.body;
 
   //get the rate
   const rate = await Rate.findOne({
@@ -63,13 +63,23 @@ const createParking = asyncHandler(async (req, res) => {
     },
   });
 
+  let parking = await Parking.findOne({
+    where: {
+      vehicleNumber: vehicleNumber,
+    },
+  });
+
+  if (parking && !parking.isCheckOut) {
+    return res.status(400).json({ msg: "Vehicle has not checked out" });
+  }
+
   //save the parking details in db
-  const parking = await Parking.create({
+  parking = await Parking.create({
     vehicleOwner,
     vehicleNumber: vehicleNumber,
     rateName,
     ratePrice: rate.ratePrice,
-    balance,
+    phone,
     slotName,
     userId: req.user.id,
     shift: req.user.shift,
