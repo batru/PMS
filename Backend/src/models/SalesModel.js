@@ -23,7 +23,7 @@ const Sales = sequelize.define("sale", {
     allowNull: false,
   },
   vehicleNumber: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
   totalAmount: {

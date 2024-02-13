@@ -66,10 +66,12 @@ const createParking = asyncHandler(async (req, res) => {
   let parking = await Parking.findOne({
     where: {
       vehicleNumber: vehicleNumber,
+      isCheckOut: false,
     },
+    order: [["createdAt", "DESC"]],
   });
 
-  if (parking && !parking.isCheckOut) {
+  if (parking) {
     return res.status(400).json({ msg: "Vehicle has not checked out" });
   }
 
