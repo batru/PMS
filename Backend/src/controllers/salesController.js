@@ -1,6 +1,8 @@
 import asyncHandler from "express-async-handler";
 import Sales from "../models/SalesModel.js";
 import Parking from "../models/parkingModel.js";
+import moment from "moment";
+import { Sequelize, Op } from "sequelize";
 
 //get all sales
 const getSales = asyncHandler(async (req, res) => {
@@ -31,6 +33,45 @@ const getSales = asyncHandler(async (req, res) => {
       message: error,
     });
   }
+});
+
+//get all sales date range
+const getSalesRange = asyncHandler(async (req, res) => {
+  try {
+    //get current date in yyyy/mm/dd
+
+    //get formdata
+    let { startDate, endDate } = req.body;
+    // startDate = moment.utc(startDate).local().format();
+    // endDate = moment.utc(endDate).local().format();
+    startDate = moment(startDate).add(3, "hours");
+    endDate = moment(endDate).add(3, "hours");
+
+    startDate = startDate.utcOffset(0);
+    startDate = startDate.set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    });
+    endDate = endDate.utcOffset(0);
+    endDate = endDate.set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 59,
+    });
+
+    const sales = await Sales.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lte]: endDate,
+        },
+      },
+    });
+    res.status(200).json({ sales });
+  } catch (err) {}
 });
 
 //check out
@@ -87,4 +128,4 @@ const createSale = asyncHandler(async (req, res) => {
   }
 });
 
-export { getSales, createSale };
+export { getSales, createSale, getSalesRange };
