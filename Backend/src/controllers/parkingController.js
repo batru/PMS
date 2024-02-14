@@ -34,6 +34,27 @@ const getParkings = asyncHandler(async (req, res) => {
   }
 });
 
+//get parkings bin the yard
+const getParkedVehicles = asyncHandler(async (req, res) => {
+  try {
+    const { count, rows: parkedVehicles } = await Parking.findAndCountAll({
+      where: {
+        isCheckOut: false,
+      },
+    });
+
+    res.status(200).json({
+      totalParked: count,
+      parkedVehicles,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      message: error,
+    });
+  }
+});
+
 //get parkings by id
 const getParkingsById = asyncHandler(async (req, res) => {
   const parking = await Parking.findOne({
@@ -146,4 +167,5 @@ export {
   createParking,
   updateParking,
   deleteParking,
+  getParkedVehicles,
 };

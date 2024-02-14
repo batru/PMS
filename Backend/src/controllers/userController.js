@@ -138,8 +138,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 //get all Users
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.findAll();
-  res.status(200).json(users);
+  const { count, rows: users } = await User.findAndCountAll();
+  res.status(200).json({
+    totalUsers: count,
+    users,
+  });
 });
 
 //get user by id

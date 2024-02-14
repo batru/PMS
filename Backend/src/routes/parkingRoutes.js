@@ -8,10 +8,12 @@ import {
   createParking,
   updateParking,
   deleteParking,
+  getParkedVehicles,
 } from "../controllers/parkingController.js";
 import { protect, admin } from "../middleware/authMiddleWare.js";
 
 router.route("/").get(protect, getParkings);
+router.route("/parkedVehicles").get(protect, getParkedVehicles);
 
 router.route("/addParking").post(protect, createParking);
 

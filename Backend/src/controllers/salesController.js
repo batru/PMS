@@ -6,26 +6,19 @@ import { Sequelize, Op } from "sequelize";
 
 //get all sales
 const getSales = asyncHandler(async (req, res) => {
-  //pagination
-  const pageSize = 2;
-  const page = Number(req.query.pageNumber) || 1;
-
-  //number of parkings to skip
-  const offset = (page - 1) * pageSize;
-
   try {
-    //get the total count of the parkings in db
-    const { count, rows: sales } = await Sales.findAndCountAll({
-      limit: pageSize,
-      offset: offset,
-    });
+    const { count, rows: sales } = await Sales.findAndCountAll();
+    // Calculate the sum of amountPaid
+    // Calculate the sum of amountPaid, handling null or undefined values
+    const sumOfAmountPaid = sales.reduce((sum, currentSale) => {
+      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
+      return sum + amountPaid;
+    }, 0);
 
     res.status(200).json({
-      totalItems: count,
-      currentPage: page,
-      pageSize: pageSize,
-      totalPages: Math.ceil(count / pageSize),
-      sales: sales,
+      totalSales: count,
+      sales,
+      sumOfAmountPaid,
     });
   } catch (error) {
     console.log(error);

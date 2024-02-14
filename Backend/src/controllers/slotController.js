@@ -3,8 +3,11 @@ import Slot from "../models/slotModel.js";
 
 //get all slots
 const getSlots = asyncHandler(async (req, res) => {
-  const slots = await Slot.findAll();
-  res.status(200).json(slots);
+  const { count, rows: slots } = await Slot.findAndCountAll();
+  res.status(200).json({
+    totalSlots: count,
+    slots,
+  });
 });
 
 //get slot by id
