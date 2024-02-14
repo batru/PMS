@@ -11,8 +11,8 @@ import {
 import { protect, admin } from "../middleware/authMiddleWare.js";
 
 router.route("/").get(protect, getSales);
-router.route("/salesRange").post(getSalesRange);
-router.route("/checkInRange").post(getCheckInRange);
+router.route("/salesRange").post(protect, admin, getSalesRange);
+router.route("/checkInRange").post(protect, admin, getCheckInRange);
 router.route("/:id").post(protect, createSale);
 
 export default router;
