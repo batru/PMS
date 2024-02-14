@@ -44,6 +44,9 @@ const getSalesRange = asyncHandler(async (req, res) => {
     let { startDate, endDate } = req.body;
     // startDate = moment.utc(startDate).local().format();
     // endDate = moment.utc(endDate).local().format();
+    // startDate = moment(startDate).add(3, "hours");
+    // endDate = moment(endDate).add(3, "hours");
+
     startDate = moment(startDate).add(3, "hours");
     endDate = moment(endDate).add(3, "hours");
 
@@ -72,6 +75,45 @@ const getSalesRange = asyncHandler(async (req, res) => {
     });
     res.status(200).json({ sales });
   } catch (err) {}
+});
+
+// get all check-ins within a date range
+const getCheckInRange = asyncHandler(async (req, res) => {
+  try {
+    // get form data
+    let { startDate, endDate } = req.body;
+
+    console.log(startDate, endDate);
+
+    // validate if startDate and endDate are provided
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: "Both startDate and endDate are required." });
+    }
+
+    // parse dates using Moment.js
+    startDate = moment(startDate).add(3, "hours").startOf("day").toDate();
+    endDate = moment(endDate).add(3, "hours").endOf("day").toDate();
+
+    // query check-ins within the date range using Sequelize
+    const checkins = await Parking.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lte]: endDate,
+        },
+      },
+    });
+
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endDate);
+
+    res.status(200).json({ checkins });
+  } catch (err) {
+    console.error("Error in getCheckInRange:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 //check out
@@ -128,4 +170,4 @@ const createSale = asyncHandler(async (req, res) => {
   }
 });
 
-export { getSales, createSale, getSalesRange };
+export { getSales, createSale, getSalesRange, getCheckInRange };
