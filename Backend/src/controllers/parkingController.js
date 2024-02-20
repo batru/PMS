@@ -1,12 +1,14 @@
 import asyncHandler from "express-async-handler";
 import Parking from "../models/parkingModel.js";
 import Rate from "../models/rateModel.js";
-import User from "../models/userModel.js";
+
+import moment from "moment";
+import { Sequelize, Op, literal } from "sequelize";
 
 //get all parkings
 const getParkings = asyncHandler(async (req, res) => {
   //pagination
-  const pageSize = 1;
+  const pageSize = 9;
   const page = Number(req.query.pageNumber) || 1;
 
   //number of parkings to skip
@@ -34,7 +36,59 @@ const getParkings = asyncHandler(async (req, res) => {
   }
 });
 
-//get parkings bin the yard
+//get parkings in the yard Today
+const getParkedVehiclesToday = asyncHandler(async (req, res) => {
+  try {
+    const { count, rows: parkedVehiclesToday } = await Parking.findAndCountAll({
+      where: {
+        isCheckOut: false,
+        createdAt: {
+          [Op.between]: [
+            moment().startOf("day").toDate(), // Start of today
+            moment().endOf("day").toDate(), // End of today
+          ],
+        },
+      },
+    });
+
+    res.status(200).json({
+      totalParkedToday: count,
+      parkedVehiclesToday,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      message: error,
+    });
+  }
+});
+
+const getCurrentYearCheckins = async (req, res) => {
+  try {
+    const currentYear = moment().year();
+
+    const checkinsByMonth = await Parking.findAll({
+      attributes: [
+        [literal("DATE_FORMAT(createdAt, '%M')"), "month"],
+        [literal("COUNT(*)"), "totalCheckins"],
+      ],
+      where: {
+        createdAt: {
+          [Op.between]: [
+            moment(`${currentYear}-01-01`).toDate(),
+            moment(`${currentYear}-12-31`).toDate(),
+          ],
+        },
+      },
+      group: [literal("DATE_FORMAT(createdAt, '%M')")],
+    });
+    res.json(checkinsByMonth);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+//get parkings in the yard
 const getParkedVehicles = asyncHandler(async (req, res) => {
   try {
     const { count, rows: parkedVehicles } = await Parking.findAndCountAll({
@@ -114,7 +168,7 @@ const createParking = asyncHandler(async (req, res) => {
       parking,
     });
   } else {
-    res.status(400).json({ message: "invalid parking data" });
+    res.status(400).json({ msg: "invalid parking data" });
   }
 });
 
@@ -168,4 +222,6 @@ export {
   updateParking,
   deleteParking,
   getParkedVehicles,
+  getParkedVehiclesToday,
+  getCurrentYearCheckins,
 };

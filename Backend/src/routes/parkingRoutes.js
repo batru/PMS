@@ -9,11 +9,15 @@ import {
   updateParking,
   deleteParking,
   getParkedVehicles,
+  getParkedVehiclesToday,
+  getCurrentYearCheckins,
 } from "../controllers/parkingController.js";
 import { protect, admin } from "../middleware/authMiddleWare.js";
 
 router.route("/").get(protect, getParkings);
 router.route("/parkedVehicles").get(protect, getParkedVehicles);
+router.route("/parkedVehiclesToday").get(getParkedVehiclesToday);
+router.route("/parkedVehiclesYear").get(getCurrentYearCheckins);
 
 router.route("/addParking").post(protect, createParking);
 

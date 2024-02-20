@@ -13,7 +13,7 @@ import { protect, admin } from "../middleware/authMiddleWare.js";
 
 router.route("/").get(protect, getSlots);
 
-router.route("/addSlot").post(protect, admin, createSlot);
+router.route("/addSlot").post(protect, createSlot);
 
 router
   .route("/:id")

@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import Sales from "../models/SalesModel.js";
 import Parking from "../models/parkingModel.js";
 import moment from "moment";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, json } from "sequelize";
 
 //get all sales
 const getSales = asyncHandler(async (req, res) => {
@@ -163,4 +163,95 @@ const createSale = asyncHandler(async (req, res) => {
   }
 });
 
-export { getSales, createSale, getSalesRange, getCheckInRange };
+// Function to fetch sales data
+const getSalesData = async (req, res) => {
+  try {
+    const today = new Date();
+    const lastYear = new Date(today);
+    lastYear.setFullYear(today.getFullYear() - 1);
+
+    const salesDataThisYear = await Sales.findAll({
+      attributes: [
+        [
+          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m"),
+          "month_year",
+        ],
+        [Sequelize.fn("SUM", Sequelize.col("amountPaid")), "totalSales"],
+      ],
+      where: {
+        createdAt: {
+          [Sequelize.Op.and]: [
+            { [Sequelize.Op.gte]: today.getFullYear() + "-01-01" },
+            { [Sequelize.Op.lt]: today.getFullYear() + "-12-31" },
+          ],
+        },
+      },
+      group: ["month_year"],
+      order: ["month_year"],
+    });
+
+    const salesDataLastYear = await Sales.findAll({
+      attributes: [
+        [
+          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m"),
+          "month_year",
+        ],
+        [Sequelize.fn("SUM", Sequelize.col("amountPaid")), "totalSales"],
+      ],
+      where: {
+        createdAt: {
+          [Sequelize.Op.and]: [
+            { [Sequelize.Op.gte]: lastYear.getFullYear() + "-01-01" },
+            { [Sequelize.Op.lt]: lastYear.getFullYear() + "-12-31" },
+          ],
+        },
+      },
+      group: ["month_year"],
+      order: ["month_year"],
+    });
+
+    // Combine the results for this year and last year
+    const combinedSalesData = salesDataThisYear.concat(salesDataLastYear);
+
+    res.json(combinedSalesData);
+  } catch (error) {
+    console.error("Error fetching sales data:", error);
+    throw error;
+  }
+};
+
+//get checked out from the yard Today
+const getCheckedOutVehiclesToday = asyncHandler(async (req, res) => {
+  try {
+    const todayStart = moment().startOf("day"); // Today's date at 00:00:00
+    const todayEnd = moment().endOf("day"); // Today's date at 23:59:59
+
+    const { count, rows: checkedOutVehiclesToday } =
+      await Sales.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.between]: [todayStart, todayEnd],
+          },
+        },
+      });
+
+    res.status(200).json({
+      totalCheckedOutToday: count,
+      checkedOutVehiclesToday,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      message: error,
+    });
+  }
+});
+
+export {
+  getSales,
+  createSale,
+  getSalesRange,
+  getCheckInRange,
+  getSalesData,
+  getCheckedOutVehiclesToday,
+};
