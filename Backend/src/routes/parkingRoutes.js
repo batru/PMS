@@ -11,6 +11,7 @@ import {
   getParkedVehicles,
   getParkedVehiclesToday,
   getCurrentYearCheckins,
+  searchParking,
 } from "../controllers/parkingController.js";
 import { protect, admin } from "../middleware/authMiddleWare.js";
 
@@ -20,6 +21,7 @@ router.route("/parkedVehiclesToday").get(getParkedVehiclesToday);
 router.route("/parkedVehiclesYear").get(getCurrentYearCheckins);
 
 router.route("/addParking").post(protect, createParking);
+router.route("/search").get(searchParking);
 
 router
   .route("/:id")

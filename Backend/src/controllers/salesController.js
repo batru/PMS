@@ -8,6 +8,22 @@ import { Sequelize, Op, json } from "sequelize";
 const getSales = asyncHandler(async (req, res) => {
   try {
     const { count, rows: sales } = await Sales.findAndCountAll();
+
+    // Filter sales by payment method
+    const mpesa = sales.filter((sale) => sale.paymentMode === "M-PESA");
+    const cash = sales.filter((sale) => sale.paymentMode === "CASH");
+
+    // Calculate the total amount paid in Mpesa
+    const mpesaSales = mpesa.reduce((sum, currentSale) => {
+      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
+      return sum + amountPaid;
+    }, 0);
+
+    // Calculate the total amount paid in cash
+    const cashSales = cash.reduce((sum, currentSale) => {
+      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
+      return sum + amountPaid;
+    }, 0);
     // Calculate the sum of amountPaid
     // Calculate the sum of amountPaid, handling null or undefined values
     const sumOfAmountPaid = sales.reduce((sum, currentSale) => {
@@ -19,6 +35,8 @@ const getSales = asyncHandler(async (req, res) => {
       totalSales: count,
       sales,
       sumOfAmountPaid,
+      mpesaSales,
+      cashSales,
     });
   } catch (error) {
     console.log(error);

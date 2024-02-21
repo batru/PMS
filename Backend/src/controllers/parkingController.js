@@ -109,6 +109,21 @@ const getParkedVehicles = asyncHandler(async (req, res) => {
   }
 });
 
+//search in all parking
+const searchParking = asyncHandler(async (req, res) => {
+  try {
+    const parking = await Parking.findAll({
+      where: {
+        [Op.or]: [
+          { vehicleNumber: { [Op.like]: `%${req.query.searchField}%` } },
+        ],
+      },
+    });
+
+    res.status(200).json(parking);
+  } catch (err) {}
+});
+
 //get parkings by id
 const getParkingsById = asyncHandler(async (req, res) => {
   const parking = await Parking.findOne({
@@ -224,4 +239,5 @@ export {
   getParkedVehicles,
   getParkedVehiclesToday,
   getCurrentYearCheckins,
+  searchParking,
 };
