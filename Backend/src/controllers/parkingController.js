@@ -41,7 +41,7 @@ const getParkedVehiclesToday = asyncHandler(async (req, res) => {
   try {
     const { count, rows: parkedVehiclesToday } = await Parking.findAndCountAll({
       where: {
-        isCheckOut: false,
+        // isCheckOut: false,
         createdAt: {
           [Op.between]: [
             moment().startOf("day").toDate(), // Start of today

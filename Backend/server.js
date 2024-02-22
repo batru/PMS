@@ -12,6 +12,7 @@ import rateRoute from "./src/routes/rateRoutes.js";
 import slotRoute from "./src/routes/slotRoutes.js";
 import parkingRoute from "./src/routes/parkingRoutes.js";
 import salesRoute from "./src/routes/salesRoutes.js";
+import entryRoute from "./src/routes/entryRoutes.js";
 //TEST DB
 sequelize
   .authenticate()
@@ -47,5 +48,6 @@ app.use("/api/rates", rateRoute);
 app.use("/api/slots", slotRoute);
 app.use("/api/parkings", parkingRoute);
 app.use("/api/sales", salesRoute);
+app.use("/api/entry", entryRoute);
 
 app.listen(port, () => console.log(`server running on port ${port}`));
