@@ -1,7 +1,9 @@
 import asyncHandler from "express-async-handler";
 import Entry from "../models/entryModel.js";
-import { Sequelize, Op } from "sequelize";
+
+import { Sequelize, Op, QueryTypes } from "sequelize";
 import moment from "moment";
+import sequelize from "../utils/db.js";
 
 //crete an entry
 const createEntry = asyncHandler(async (req, res) => {
@@ -81,4 +83,48 @@ const getEntriesToday = asyncHandler(async (req, res) => {
   });
 });
 
-export { createEntry, updateEntry, deleteEntry, getEntriesToday };
+const getDataRange = asyncHandler(async (req, res) => {
+  try {
+    // get form data
+    let { startDate, endDate } = req.body;
+
+    // validate if startDate and endDate are provided
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: "Both startDate and endDate are required." });
+    }
+
+    // parse dates using Moment.js
+    startDate = moment(startDate).add(3, "hours").startOf("day").toDate();
+    endDate = moment(endDate).add(3, "hours").endOf("day").toDate();
+
+    // query entries and parkings within the date range using JOIN
+    const parkings = await sequelize.query(
+      `
+        SELECT 
+          e.vehicleNumber,
+          e.createdAt AS entryCreatedAt,
+          e.slotName AS entrySlotName,
+          p.createdAt AS parkingCreatedAt,
+          p.slotName AS parkingSlotName
+        FROM entries e
+        LEFT JOIN parkings p ON e.vehicleNumber = p.vehicleNumber
+          AND p.createdAt >= :startDate AND p.createdAt <= :endDate
+        WHERE e.createdAt >= :startDate AND e.createdAt <= :endDate
+          AND p.id IS NULL
+        `,
+      {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    res.status(200).json({ parkings });
+  } catch (err) {
+    console.error("Error in getDataRange:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+export { createEntry, updateEntry, deleteEntry, getEntriesToday, getDataRange };

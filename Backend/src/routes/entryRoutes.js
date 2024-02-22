@@ -5,6 +5,7 @@ const router = express.Router();
 import {
   createEntry,
   deleteEntry,
+  getDataRange,
   getEntriesToday,
   updateEntry,
 } from "../controllers/entryController.js";
@@ -13,6 +14,7 @@ import { protect } from "../middleware/authMiddleWare.js";
 router.route("/").get(protect, getEntriesToday);
 
 router.route("/addEntry").post(protect, createEntry);
+router.route("/dataRange").post(getDataRange);
 router
   .route("/:id")
 

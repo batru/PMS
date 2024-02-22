@@ -58,23 +58,15 @@ const getSalesRange = asyncHandler(async (req, res) => {
     // startDate = moment(startDate).add(3, "hours");
     // endDate = moment(endDate).add(3, "hours");
 
-    startDate = moment(startDate).add(3, "hours");
-    endDate = moment(endDate).add(3, "hours");
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: "Both startDate and endDate are required." });
+    }
 
-    startDate = startDate.utcOffset(0);
-    startDate = startDate.set({
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-    });
-    endDate = endDate.utcOffset(0);
-    endDate = endDate.set({
-      hour: 23,
-      minute: 59,
-      second: 59,
-      millisecond: 59,
-    });
+    // parse dates using Moment.js
+    startDate = moment(startDate).add(3, "hours").startOf("day").toDate();
+    endDate = moment(endDate).add(3, "hours").endOf("day").toDate();
 
     const sales = await Sales.findAll({
       where: {
@@ -93,8 +85,6 @@ const getCheckInRange = asyncHandler(async (req, res) => {
   try {
     // get form data
     let { startDate, endDate } = req.body;
-
-    console.log(startDate, endDate);
 
     // validate if startDate and endDate are provided
     if (!startDate || !endDate) {
@@ -116,9 +106,6 @@ const getCheckInRange = asyncHandler(async (req, res) => {
         },
       },
     });
-
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endDate);
 
     res.status(200).json({ checkins });
   } catch (err) {
@@ -241,14 +228,15 @@ const getSalesData = async (req, res) => {
 //get checked out from the yard Today
 const getCheckedOutVehiclesToday = asyncHandler(async (req, res) => {
   try {
-    const todayStart = moment().startOf("day"); // Today's date at 00:00:00
-    const todayEnd = moment().endOf("day"); // Today's date at 23:59:59
-
     const { count, rows: checkedOutVehiclesToday } =
       await Sales.findAndCountAll({
         where: {
+          // isCheckOut: false,
           createdAt: {
-            [Op.between]: [todayStart, todayEnd],
+            [Op.between]: [
+              moment().startOf("day").toDate(), // Start of today
+              moment().endOf("day").toDate(), // End of today
+            ],
           },
         },
       });
