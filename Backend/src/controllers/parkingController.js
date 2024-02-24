@@ -7,31 +7,32 @@ import { Sequelize, Op, literal } from "sequelize";
 
 //get all parkings
 const getParkings = asyncHandler(async (req, res) => {
-  //pagination
+  // Pagination
   const pageSize = 9;
   const page = Number(req.query.pageNumber) || 1;
 
-  //number of parkings to skip
+  // Calculate the number of parkings to skip
   const offset = (page - 1) * pageSize;
 
   try {
-    //get the total count of the parkings in db
+    // Get the latest parkings with total count
     const { count, rows: parkings } = await Parking.findAndCountAll({
       limit: pageSize,
-      offset: offset,
+      offset,
+      order: [["createdAt", "DESC"]], // Order by createdAt in descending order to get the latest parkings
     });
 
     res.status(200).json({
       totalItems: count,
       currentPage: page,
-      pageSize: pageSize,
+      pageSize,
       totalPages: Math.ceil(count / pageSize),
-      parkings: parkings,
+      parkings,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).json({
-      message: error,
+      message: error.message || "Error fetching parkings data.",
     });
   }
 });
