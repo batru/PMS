@@ -4,44 +4,31 @@ import Parking from "../models/parkingModel.js";
 import moment from "moment";
 import { Sequelize, Op, json } from "sequelize";
 
-//get all sales
 const getSales = asyncHandler(async (req, res) => {
   try {
     const { count, rows: sales } = await Sales.findAndCountAll();
 
-    // Filter sales by payment method
-    const mpesa = sales.filter((sale) => sale.paymentMode === "M-PESA");
-    const cash = sales.filter((sale) => sale.paymentMode === "CASH");
-
-    // Calculate the total amount paid in Mpesa
-    const mpesaSales = mpesa.reduce((sum, currentSale) => {
-      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
-      return sum + amountPaid;
-    }, 0);
-
-    // Calculate the total amount paid in cash
-    const cashSales = cash.reduce((sum, currentSale) => {
-      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
-      return sum + amountPaid;
-    }, 0);
-    // Calculate the sum of amountPaid
-    // Calculate the sum of amountPaid, handling null or undefined values
-    const sumOfAmountPaid = sales.reduce((sum, currentSale) => {
-      const amountPaid = currentSale.amountPaid || 0; // Treat null or undefined as 0
-      return sum + amountPaid;
-    }, 0);
+    // Use reduce to calculate the sum of amountPaid for different payment modes
+    const paymentSums = sales.reduce((acc, sale) => {
+      const amountPaid = sale.amountPaid || 0;
+      acc[sale.paymentMode] = (acc[sale.paymentMode] || 0) + amountPaid;
+      return acc;
+    }, {});
 
     res.status(200).json({
       totalSales: count,
       sales,
-      sumOfAmountPaid,
-      mpesaSales,
-      cashSales,
+      sumOfAmountPaid: sales.reduce(
+        (sum, sale) => sum + (sale.amountPaid || 0),
+        0
+      ),
+      mpesaSales: paymentSums["M-PESA"] || 0,
+      cashSales: paymentSums["CASH"] || 0,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).json({
-      message: error,
+      message: error.message || "Error fetching sales data.",
     });
   }
 });
@@ -178,7 +165,7 @@ const getSalesData = async (req, res) => {
     const salesDataThisYear = await Sales.findAll({
       attributes: [
         [
-          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m"),
+          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%M %Y"),
           "month_year",
         ],
         [Sequelize.fn("SUM", Sequelize.col("amountPaid")), "totalSales"],
@@ -192,13 +179,15 @@ const getSalesData = async (req, res) => {
         },
       },
       group: ["month_year"],
-      order: ["month_year"],
+      order: [
+        Sequelize.fn("STR_TO_DATE", Sequelize.col("month_year"), "%M %Y"),
+      ],
     });
 
     const salesDataLastYear = await Sales.findAll({
       attributes: [
         [
-          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m"),
+          Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%M %Y"),
           "month_year",
         ],
         [Sequelize.fn("SUM", Sequelize.col("amountPaid")), "totalSales"],
@@ -212,7 +201,9 @@ const getSalesData = async (req, res) => {
         },
       },
       group: ["month_year"],
-      order: ["month_year"],
+      order: [
+        Sequelize.fn("STR_TO_DATE", Sequelize.col("month_year"), "%M %Y"),
+      ],
     });
 
     // Combine the results for this year and last year
@@ -241,9 +232,22 @@ const getCheckedOutVehiclesToday = asyncHandler(async (req, res) => {
         },
       });
 
+    // Use reduce to calculate the sum of amountPaid for different payment modes
+    const paymentSums = checkedOutVehiclesToday.reduce((acc, sale) => {
+      const amountPaid = sale.amountPaid || 0;
+      acc[sale.paymentMode] = (acc[sale.paymentMode] || 0) + amountPaid;
+      return acc;
+    }, {});
+
     res.status(200).json({
       totalCheckedOutToday: count,
       checkedOutVehiclesToday,
+      sumOfAmountPaidToday: checkedOutVehiclesToday.reduce(
+        (sum, sale) => sum + (sale.amountPaid || 0),
+        0
+      ),
+      mpesaSalesToday: paymentSums["M-PESA"] || 0,
+      cashSalesToday: paymentSums["CASH"] || 0,
     });
   } catch (error) {
     console.log(error);
