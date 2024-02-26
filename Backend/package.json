@@ -4,6 +4,10 @@
   "description": "",
   "type": "module",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/batru/PMS.git"
+  },
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js"
