@@ -5,8 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "server": "nodemon server.js"
+    "start": "node server.js"
   },
   "author": "Batrudin Haji",
   "license": "ISC",
