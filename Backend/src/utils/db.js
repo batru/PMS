@@ -8,7 +8,6 @@ const sequelize = new Sequelize(
   {
     host: "localhost",
     dialect: "mysql",
-    timezone: "Etc/GMT+3", // Set to East Africa Time (UTC+3)
   }
 );
 
